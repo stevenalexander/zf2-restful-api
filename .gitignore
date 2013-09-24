@@ -1,0 +1,6 @@
+._*
+.~lock.*
+.DS_Store
+composer.lock
+composer.phar
+vendor
