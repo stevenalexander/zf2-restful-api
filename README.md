@@ -18,17 +18,17 @@ This is an example application showing how to create a RESTful JSON API using PH
 
 2. Create the composer.json file to get ZF2:
 
-    * composer.json
-    ```
+
     {
         "require": {
             "php": ">=5.3.3",
             "zendframework/zendframework": ">=2.2.4"
         }
     }
-    ```
 
-    * Run
+
+3. Install the dependencies:
+
     ```
     php composer.phar install
     ```
