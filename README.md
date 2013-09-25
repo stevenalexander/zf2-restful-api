@@ -284,3 +284,98 @@ This is an example application showing how to create a RESTful JSON API using PH
     ```
 
 14. You can now make specific HTTP requests to the album resource to interact with it in a RESTful manner, e.g. GET /album to see the list of albums, PUT /album/3 to update album 3. Use a REST client, like Chromes Postman to test it out
+
+## Tricks and traps
+
+1. Error handling for application exceptions and 404s
+
+    If your application experiences an error or can't find a requested resource you want to return a meaningful response. Currently if an error occurs you'll get a Zend\View\Exception\RuntimeException 'Unable to render template "error"', cause it can't find the html error view. To fix this you need to hook into the ZF2 eventmanager events and intercept errors, returning an appropiate response.
+
+    You do this in the module Module.php file:
+
+    ```
+    <?php
+
+    namespace AlbumApi;
+
+    use Zend\Mvc\ModuleRouteListener;
+    use Zend\Mvc\MvcEvent;
+    use Zend\View\Model\JsonModel;
+
+    class Module
+    {
+        public function onBootstrap(MvcEvent $e)
+        {
+            $eventManager        = $e->getApplication()->getEventManager();
+            $moduleRouteListener = new ModuleRouteListener();
+            $moduleRouteListener->attach($eventManager);
+
+            $eventManager->attach(MvcEvent::EVENT_DISPATCH_ERROR, array($this, 'onDispatchError'), 0);
+            $eventManager->attach(MvcEvent::EVENT_RENDER_ERROR, array($this, 'onRenderError'), 0);
+        }
+
+        public function onDispatchError($e)
+        {
+            return $this->getJsonModelError($e);
+        }
+
+        public function onRenderError($e)
+        {
+            return $this->getJsonModelError($e);
+        }
+
+        public function getJsonModelError($e)
+        {
+            $error = $e->getError();
+            if (!$error) {
+                return;
+            }
+
+            $response = $e->getResponse();
+            $exception = $e->getParam('exception');
+            $exceptionJson = array();
+            if ($exception) {
+                $exceptionJson = array(
+                    'class' => get_class($exception),
+                    'file' => $exception->getFile(),
+                    'line' => $exception->getLine(),
+                    'message' => $exception->getMessage(),
+                    'stacktrace' => $exception->getTraceAsString()
+                );
+            }
+
+            $errorJson = array(
+                'message'   => 'An error occurred during execution; please try again later.',
+                'error'     => $error,
+                'exception' => $exceptionJson,
+            );
+            if ($error == 'error-router-no-match') {
+                $errorJson['message'] = 'Resource not found.';
+            }
+
+            $model = new JsonModel(array('errors' => array($errorJson)));
+
+            $e->setResult($model);
+
+            return $model;
+        }
+
+        public function getConfig()
+        {
+            return include __DIR__ . '/config/module.config.php';
+        }
+
+        public function getAutoloaderConfig()
+        {
+            return array(
+                'Zend\Loader\StandardAutoloader' => array(
+                    'namespaces' => array(
+                        __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
+                    ),
+                ),
+            );
+        }
+    }
+    ```
+
+    You can extend this approach to return error responses with specific [HTTP status codes](http://www.restapitutorial.com/httpstatuscodes.html) for exceptions by changing the response status code based on the exception (custom exceptions with appropiate codes/messages).
