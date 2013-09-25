@@ -282,3 +282,5 @@ This is an example application showing how to create a RESTful JSON API using PH
         ),
     );
     ```
+
+14. You can now make specific HTTP requests to the album resource to interact with it in a RESTful manner, e.g. GET /album to see the list of albums, PUT /album/3 to update album 3. Use a REST client, like Chromes Postman to test it out
