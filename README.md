@@ -458,3 +458,7 @@ class AbstractRestfulJsonController extends AbstractRestfulController
     }
 }
 ```
+
+### get and getlist actions for child resources
+
+If you want to use child resources for resources, e.g. /album/2/track/10, you'll find a problem that the AbstractRestfulController will not route to getlist action functions correctly, instead it will go to get with the id for the parent resource . To correct this you need to add a separate controller and route for the list and item, and extract the child id param from the route directly.
