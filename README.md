@@ -47,8 +47,28 @@ This is an example application showing how to create a RESTful JSON API using PH
     require 'init_autoloader.php';
     Zend\Mvc\Application::init(require 'config/application.config.php')->run();
     ```
+5. public/.htaccess (for redirecting non-asset requests to index.php)
 
-5. init_autoloader.php (for loading Zend)
+    ```
+    RewriteEngine On
+    # The following rule tells Apache that if the requested filename
+    # exists, simply serve it.
+    RewriteCond %{REQUEST_FILENAME} -s [OR]
+    RewriteCond %{REQUEST_FILENAME} -l [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^.*$ - [NC,L]
+    # The following rewrites all other queries to index.php. The
+    # condition ensures that if you are using Apache aliases to do
+    # mass virtual hosting, the base path will be prepended to
+    # allow proper resolution of the index.php file; it will work
+    # in non-aliased environments as well, providing a safe, one-size
+    # fits all solution.
+    RewriteCond %{REQUEST_URI}::$1 ^(/.+)(.+)::\2$
+    RewriteRule ^(.*) - [E=BASE:%1]
+    RewriteRule ^(.*)$ %{ENV:BASE}index.php [NC,L]
+    ```
+
+6. init_autoloader.php (for loading Zend)
 
     ```
     <?php
@@ -62,7 +82,7 @@ This is an example application showing how to create a RESTful JSON API using PH
     }
     ```
 
-6. config/application.config.php (application wide configuration)
+7. config/application.config.php (application wide configuration)
 
     ```
     <?php
@@ -83,7 +103,7 @@ This is an example application showing how to create a RESTful JSON API using PH
     );
     ```
 
-7. module/AlbumApi/Module.php (module setup)
+8. module/AlbumApi/Module.php (module setup)
 
     ```
     <?php
@@ -121,7 +141,7 @@ This is an example application showing how to create a RESTful JSON API using PH
 
     ```
 
-8. module/AlbumApi/config/module.config.php (module configuration)
+9. module/AlbumApi/config/module.config.php (module configuration)
 
     ```
     <?php
@@ -153,7 +173,7 @@ This is an example application showing how to create a RESTful JSON API using PH
     );
     ```
 
-9. module/AlbumApi/src/AlbumApi/Controller/IndexController.php (basic RESTful controller)
+10. module/AlbumApi/src/AlbumApi/Controller/IndexController.php (basic RESTful controller)
 
     ```
     <?php
@@ -169,4 +189,96 @@ This is an example application showing how to create a RESTful JSON API using PH
             return new JsonModel(array('data' => "Welcome to the Zend Framework Album API example"));
         }
     }
+    ```
+
+11. You should now be able to request the API URL and receive a JSON response with the welcome message
+
+12. module/AlbumApi/src/AlbumApi/Controller/AlbumController.php (album controller with CRUD REST actions)
+
+    ```
+    <?php
+    namespace AlbumApi\Controller;
+
+    use Zend\Mvc\Controller\AbstractRestfulController;
+    use Zend\View\Model\JsonModel;
+
+    class AlbumController extends AbstractRestfulController
+    {
+        public function getList()
+        {   // Action used for GET requests without resource Id
+            return new JsonModel(
+                array('data' =>
+                    array(
+                        array('id'=> 1, 'name' => 'Mothership', 'band' => 'Led Zeppelin'),
+                        array('id'=> 2, 'name' => 'Coda',       'band' => 'Led Zeppelin'),
+                    )
+                )
+            );
+        }
+
+        public function get($id)
+        {   // Action used for GET requests with resource Id
+            return new JsonModel(array("data" => array('id'=> 2, 'name' => 'Coda', 'band' => 'Led Zeppelin')));
+        }
+
+        public function create($data)
+        {   // Action used for POST requests
+            return new JsonModel(array('data' => array('id'=> 3, 'name' => 'New Album', 'band' => 'New Band')));
+        }
+
+        public function update($id, $data)
+        {   // Action used for PUT requests
+            return new JsonModel(array('data' => array('id'=> 3, 'name' => 'Updated Album', 'band' => 'Updated Band')));
+        }
+
+        public function delete($id)
+        {   // Action used for DELETE requests
+            return new JsonModel(array('data' => 'album id 3 deleted'));
+        }
+    }
+    ```
+
+13. Update module/AlbumApi/config/module.config.php to add controller and routing
+
+    ```
+    <?php
+
+    return array(
+        'router' => array(
+            'routes' => array(
+                'home' => array(
+                    'type' => 'Zend\Mvc\Router\Http\Literal',
+                    'options' => array(
+                        'route'    => '/',
+                        'defaults' => array(
+                            'controller' => 'AlbumApi\Controller\Index',
+                        ),
+                    ),
+                ),
+                'album' => array(
+                    'type'    => 'segment',
+                    'options' => array(
+                        'route'    => '/album[/:id]',
+                        'constraints' => array(
+                            'id'     => '[0-9]+',
+                        ),
+                        'defaults' => array(
+                            'controller' => 'AlbumApi\Controller\Album',
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        'controllers' => array(
+            'invokables' => array(
+                'AlbumApi\Controller\Index' => 'AlbumApi\Controller\IndexController',
+                'AlbumApi\Controller\Album' => 'AlbumApi\Controller\AlbumController',
+            ),
+        ),
+        'view_manager' => array(
+            'strategies' => array(
+                'ViewJsonStrategy',
+            ),
+        ),
+    );
     ```
