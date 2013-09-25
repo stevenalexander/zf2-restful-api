@@ -1,10 +1,10 @@
 <?php
 namespace AlbumApi\Controller;
 
-use Zend\Mvc\Controller\AbstractRestfulController;
+use AlbumApi\Controller\AbstractRestfulController;
 use Zend\View\Model\JsonModel;
 
-class AlbumController extends AbstractRestfulController
+class AlbumController extends AbstractRestfulJsonController
 {
     public function getList()
     {   // Action used for GET requests without resource Id

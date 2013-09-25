@@ -379,3 +379,82 @@ class Module
 ```
 
 You can extend this approach to return error responses with specific [HTTP status codes](http://www.restapitutorial.com/httpstatuscodes.html) for exceptions by changing the response status code based on the exception (custom exceptions with appropiate codes/messages).
+
+### Return response for unsupported method
+
+The [ZF2 AbstractRestfulController](https://github.com/zendframework/zf2/blob/master/library/Zend/Mvc/Controller/AbstractRestfulController.php) has base action functions for all standard HTTP methods, but if you don't want to support some for all resources it will try and return an array which is not a JsonModel so will cause a rendering exception. Correct this by creating and using your own AbstractRestfulJsonController which overrides these methods.
+
+AbstractRestfulJsonController.php
+
+```
+<?php
+namespace AlbumApi\Controller;
+
+use Zend\Mvc\Controller\AbstractRestfulController;
+use Zend\Http\Response;
+
+class AbstractRestfulJsonController extends AbstractRestfulController
+{
+    protected function methodNotAllowed()
+    {
+        $this->response->setStatusCode(405);
+        throw new \Exception('Method Not Allowed');
+    }
+
+    # Override default actions as they do not return valid JsonModels
+    public function create($data)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function delete($id)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function deleteList()
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function get($id)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function getList()
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function head($id = null)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function options()
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function patch($id, $data)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function replaceList($data)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function patchList($data)
+    {
+        return $this->methodNotAllowed();
+    }
+
+    public function update($id, $data)
+    {
+        return $this->methodNotAllowed();
+    }
+}
+```
