@@ -287,7 +287,7 @@ This is an example application showing how to create a RESTful JSON API using PH
 
 ## Database Integration
 
-To add the album DB functionality have a look at the tutorial [database and models] section, add the DB classes and configuration and plug them into the controllers. Always return the results as a JsonModel with an associative array representation of the Model objects to ensure they can be serialised.
+To add the album DB functionality have a look at the tutorial [database and models](http://framework.zend.com/manual/2.2/en/user-guide/database-and-models.html) section, add the DB classes and configuration and plug them into the controllers. Always return the results as a JsonModel with an associative array representation of the Model objects to ensure they can be serialised.
 
 ## Tricks and traps
 
