@@ -285,6 +285,10 @@ This is an example application showing how to create a RESTful JSON API using PH
 
 14. You can now make specific HTTP requests to the album resource to interact with it in a RESTful manner, e.g. GET /album to see the list of albums, PUT /album/3 to update album 3. Use a REST client, like Chromes Postman to test it out
 
+## Database Integration
+
+To add the album DB functionality have a look at the tutorial [database and models] section, add the DB classes and configuration and plug them into the controllers. Always return the results as a JsonModel with an associative array representation of the Model objects to ensure they can be serialised.
+
 ## Tricks and traps
 
 ### Error handling for application exceptions and 404s
